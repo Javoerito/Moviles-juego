@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>ViboLínea</title>
+    <style>
+        :root {
+            --bg: #000;
+            --fg: #fff;
+            --mut: #9a9a9a;
+            box-sizing: border-box;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #000;
+                --fg: #fff;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg: #000;
+            --fg: #fff;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #menu {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, .72);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            letter-spacing: .08em;
+            font-weight: 300;
+        }
+
+        p {
+            margin: 0;
+            color: var(--mut);
+            max-width: 34ch;
+            line-height: 1.5;
+            font-size: .95rem;
+        }
+
+        button,
+        label.b {
+            border: 2px solid var(--fg);
+            background: transparent;
+            color: var(--fg);
+            padding: 12px 22px;
+            font: inherit;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 220px;
+        }
+
+        button:hover,
+        label.b:hover {
+            background: var(--fg);
+            color: var(--bg);
+        }
+
+        input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="c"></canvas>
+
+    <div id="menu">
+        <h1 id="ttl">ViboLínea</h1>
+        <p id="msg">Los obstáculos nacen de la música. Cuando uno llegue al círculo de Vibri: bloque (graves) = ↑, aro (agudos) = ↓. Entre más justo, más puntos.</p>
+        <button id="demo">Jugar con demo</button>
+        <label class="b">Cargar tu canción<input id="file" type="file" accept="audio/*"></label>
+        <p>↑ / Espacio / W: arriba · ↓ / S: abajo<br>Móvil: toca la mitad de arriba = ↑, la de abajo = ↓</p>
+    </div>
+
+    <script>
+        const LEAD = 2.0, cv = document.getElementById('c'), g = cv.getContext('2d');
+        // Cámara 3D: yaw + perspectiva. Vibri queda 2D plano, el entorno es 3D.
+        const TH = .38, CT = Math.cos(TH), ST = Math.sin(TH), CX = -260, CY = 130, CZ = -520;
+        let W, H, k, gy, px, speed, FOC, ox, oy, D, wm = 1;
+        function proj(X, Y, Z) { const dx = X - CX, dz = Z - CZ, xr = dx * CT - dz * ST, zr = Math.max(dx * ST + dz * CT, 30), s = FOC / zr; return [xr * s + ox, (CY - Y) * s + oy]; }
+        function rs() {
+            const d = devicePixelRatio || 1;
+            W = innerWidth;
+            H = innerHeight;
+            cv.width = W * d;
+            cv.height = H * d;
+            g.setTransform(d, 0, 0, d, 0, 0);
+            k = Math.max(.5, Math.min(1.2, H / 520));
+            gy = H * .72;
+            px = W * .2;
+            const zr0 = -CX * ST - CZ * CT, xr0 = -CX * CT + CZ * ST;
+            FOC = k * zr0;
+            ox = px - xr0 * k;
+            oy = gy - CY * k; // el origen 3D cae donde está Vibri
+            for (D = 600; D < 6000; D += 100)
+                if (proj(D, 0, 0)[0] > W + 80)
+                    break;
+            speed = D / LEAD;
+        }
+        addEventListener('resize', rs);
+        rs();
+        // ---------- Estado ----------
+        let ctx, bus, an, dl, timer, state = 'menu', obs = [], score = 0, combo = 0, miss = 0, best = 0, jumpT = -9, duckEnd = -9, msg = '', msgT = -9, flash = -9, songEnd = Infinity, aB = 0, aT = 0, lastB = 0, lastT = 0, step = 0, nextT = 0;
+        const fd = new Uint8Array(512);
+        const WOBBLE = .7; // sube/baja para más o menos inestabilidad
+        let wob = 1.5, tw = 0, pc = 0, lvl = 0;
+        // ---------- Audio: bus -> analizador (sin retraso) y bus -> delay -> salida ----------
+        async function start(file) {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            await ctx.resume();
+            bus = ctx.createGain();
+            an = ctx.createAnalyser();
+            an.fftSize = 1024;
+            an.smoothingTimeConstant = 0;
+            dl = ctx.createDelay(4);
+            dl.delayTime.value = LEAD;
+            bus.connect(an);
+            bus.connect(dl);
+            dl.connect(ctx.destination);
+            obs = [];
+            score = combo = miss = 0;
+            jumpT = -9;
+            duckEnd = -9;
+            msgT = -9;
+            flash = -9;
+            aB = aT = 0;
+            lastB = lastT = 0;
+            prev.fill(0);
+            hist.b = [];
+            hist.t = [];
+            songEnd = Infinity;
+            step = 0;
+            if (file) {
+                try {
+                    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+                    const s = ctx.createBufferSource();
+                    s.buffer = buf;
+                    s.connect(bus);
+                    s.start();
+                    songEnd = ctx.currentTime + buf.duration + LEAD + .5;
+                }
+                catch (e) {
+                    document.getElementById('msg').textContent = 'No pude leer ese audio. Prueba con mp3/wav.';
+                    return;
+                }
+            }
+            else {
+                nextT = ctx.currentTime + .1;
+                timer = setInterval(sched, 50);
+            }
+            state = 'play';
+            document.getElementById('menu').style.display = 'none';
+        }
+        function noise() {
+            const b = ctx.createBuffer(1, ctx.sampleRate * .06, ctx.sampleRate), d = b.getChannelData(0);
+            for (let i = 0; i < d.length; i++)
+                d[i] = Math.random() * 2 - 1;
+            const s = ctx.createBufferSource();
+            s.buffer = b;
+            return s;
+        }
+        function kick(t) {
+            const o = ctx.createOscillator(), v = ctx.createGain();
+            o.frequency.setValueAtTime(150, t);
+            o.frequency.exponentialRampToValueAtTime(45, t + .12);
+            v.gain.setValueAtTime(1, t);
+            v.gain.exponentialRampToValueAtTime(.001, t + .25);
+            o.connect(v);
+            v.connect(bus);
+            o.start(t);
+            o.stop(t + .3);
+        }
+        function hat(t) {
+            const s = noise(), f = ctx.createBiquadFilter(), v = ctx.createGain();
+            f.type = 'highpass';
+            f.frequency.value = 5000;
+            v.gain.setValueAtTime(.7, t);
+            v.gain.exponentialRampToValueAtTime(.001, t + .06);
+            s.connect(f);
+            f.connect(v);
+            v.connect(bus);
+            s.start(t);
+        }
+        function sched() {
+            while (nextT < ctx.currentTime + .5) {
+                const s = step % 16;
+                if ([0, 3, 6, 8, 11, 12].includes(s))
+                    kick(nextT);
+                if ([2, 5, 7, 10, 13, 15].includes(s))
+                    hat(nextT);
+                nextT += .2;
+                step++;
+            }
+        }
+        // ---------- Detección de beats (energía por banda) ----------
+        function avg(a, b) { let s = 0; for (let i = a; i < b; i++)
+            s += fd[i]; return s / (b - a); }
+        function spawn(type, now) { const tm = now + LEAD; if (obs.length && tm - obs[obs.length - 1].tm < .3)
+            return; obs.push({ type, tm, ok: false, done: false }); }
+        // Spectral flux: cuánto SUBI el espectro respecto al frame anterior (detecta ataques, no volumen)
+        const prev = new Float32Array(512), hist = { b: [], t: [] };
+        function flux(a, b) { let s = 0; for (let i = a; i < b; i++) {
+            const d = fd[i] - prev[i];
+            if (d > 0)
+                s += d;
+        } return s / (b - a); }
+        // umbral adaptativo: promedio + 1.5 desviaciones de los últimos ~0.7 s (43 frames)
+        function onset(h, v, min) {
+            h.push(v);
+            if (h.length > 43)
+                h.shift();
+            const m = h.reduce((x, y) => x + y, 0) / h.length, sd = Math.sqrt(h.reduce((x, y) => x + (y - m) ** 2, 0) / h.length);
+            return v > m + 1.5 * sd + min;
+        }
+        function detect(now) {
+            an.getByteFrequencyData(fd);
+            const b = avg(1, 5), fb = flux(1, 5), ft = flux(100, 250), ob = onset(hist.b, fb, 6), ot = onset(hist.t, ft, 4);
+            if (ob && now - lastB > .25) {
+                spawn('block', now);
+                lastB = now;
+            }
+            else if (ot && now - lastT > .25) {
+                spawn('loop', now);
+                lastT = now;
+            }
+            prev.set(fd);
+            lvl = Math.max(lvl, b / 255);
+        }
+        // ---------- Lógica ----------
+        function jumpH(now) { const s = (now - jumpT) / .42; return s > 0 && s < 1 ? 90 * k * 4 * s * (1 - s) : 0; }
+        // Modo ritmo: se juzga CUÁNDO presionas. Bloque = ↑, aro = ↓. Si no hay obstáculo cerca, el toque se ignora.
+        const WIN = .18, ANIM = true; // WIN: ventana de acierto (s). ANIM=false quita la animación de Vibri al acertar
+        function say(t, now) { msg = t; msgT = now; }
+        function press(key) {
+            if (state !== 'play')
+                return;
+            const now = ctx.currentTime;
+            let o = null, bd = 9;
+            for (const x of obs) {
+                if (x.done)
+                    continue;
+                const d = Math.abs(x.tm - now);
+                if (d < WIN && d < bd) {
+                    o = x;
+                    bd = d;
+                }
+            }
+            if (!o)
+                return;
+            o.done = true;
+            if ((key === 'up') === (o.type === 'block')) {
+                o.ok = true;
+                combo++;
+                const pf = bd < .06;
+                score += (pf ? 30 : 15) + Math.min(combo, 20) * 2;
+                say(pf ? 'PERFECT' : 'BIEN', now);
+                if (ANIM) {
+                    if (key === 'up')
+                        jumpT = now;
+                    else
+                        duckEnd = now + .4;
+                }
+            }
+            else {
+                o.ok = false;
+                miss++;
+                combo = 0;
+                flash = now;
+                say('TECLA MALA', now);
+            }
+        }
+        function update(now) {
+            for (const o of obs) {
+                if (o.done)
+                    continue;
+                const d = o.tm - now;
+                if (d < -WIN) {
+                    o.done = true;
+                    miss++;
+                    combo = 0;
+                    flash = now;
+                    say('FALLO', now);
+                }
+            }
+            obs = obs.filter(o => o.tm > now - .6);
+            if (miss >= 3 || now > songEnd)
+                end(now > songEnd && miss < 3);
+        }
+        function end(won) {
+            state = 'menu';
+            clearInterval(timer);
+            if (ctx)
+                ctx.close();
+            best = Math.max(best, score);
+            document.getElementById('ttl').textContent = won ? '¡Canción completada!' : 'Game over';
+            document.getElementById('msg').textContent = 'Puntaje: ' + score + ' · Mejor: ' + best;
+            document.getElementById('menu').style.display = 'flex';
+        }
+        // ---------- Dibujo vectorial: todo son polilíneas ----------
+        // Línea inestable: se subdivide cada segmento y cada punto tiembla ("boil" a ~14 fps)
+        const rnd = a => { const x = Math.sin(a) * 43758.5453; return x - Math.floor(x) - .5; };
+        function poly(pts, close) {
+            const P = close ? pts.concat([pts[0]]) : pts, s = Math.floor(tw * 14), o = (pc++) * 7.3, A = wob * k * wm;
+            let j = 0;
+            g.beginPath();
+            const pt = (x, y) => { const q = j++ * 12.9 + s * 78.2 + o, X = x + rnd(q) * 2 * A, Y = y + rnd(q + 5.3) * 2 * A; j === 1 ? g.moveTo(X, Y) : g.lineTo(X, Y); };
+            for (let i = 0; i < P.length; i++) {
+                const [x1, y1] = P[i];
+                if (i) {
+                    const [x0, y0] = P[i - 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 12));
+                    for (let m = 1; m <= n; m++) {
+                        const t = m / n;
+                        pt(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+                    }
+                }
+                else
+                    pt(x1, y1);
+            }
+            g.stroke();
+        }
+        const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        const EAR_UP = [[-10, -80], [-16, -100], [-6, -100], [-3, -80]], EAR_DN = [[-10, -80], [-26, -70], [-24, -62], [-6, -76]];
+        function vibri(now) {
+            const jh = jumpH(now), air = jh > 0, dk = now < duckEnd, sy = dk ? .55 : 1, t = now * 14, run = Math.sin(t), droop = miss / 3;
+            const P = a => a.map(([u, v]) => [px + u * k, gy - jh + v * sy * k]);
+            poly(P([[-14, -80], [14, -80], [14, -55], [-14, -55]]), true); // cabeza
+            poly(P([[-6, -70], [-6, -66]]));
+            poly(P([[6, -70], [6, -66]])); // ojos
+            const eL = EAR_UP.map((p, i) => lerp(p, EAR_DN[i], droop));
+            poly(P(eL));
+            poly(P(eL.map(([x, y]) => [-x, y]))); // orejas (caen al fallar)
+            if (combo >= 10)
+                poly(P([[-12, -84], [-6, -96], [0, -84], [6, -96], [12, -84]])); // "evolución": corona
+            poly(P([[0, -55], [0, -25]])); // cuerpo
+            const a = air ? -12 : run * 10; // brazos
+            poly(P([[-14, -36 + a], [0, -48], [14, -36 - a]]));
+            const f1 = air ? [-9, -10] : [12 * run, -6 * Math.max(0, Math.cos(t))]; // patas
+            const f2 = air ? [9, -4] : [-12 * run, -6 * Math.max(0, -Math.cos(t))];
+            poly(P([[0, -25], [f1[0] * .5 + 4, -13], f1]));
+            poly(P([[0, -25], [f2[0] * .5 + 4, -13], f2]));
+        }
+        function obstacle(o, now) {
+            const X = (o.tm - now) * speed;
+            if (X < -500 || X > D + 200)
+                return;
+            wm = .5;
+            g.strokeStyle = o.done && !o.ok ? '#f55' : o.ok ? '#7f7' : (now - flash < .2 ? '#f55' : '#fff');
+            if (o.type === 'block') {
+                const c = [];
+                for (const dx of [-16, 16])
+                    for (const dy of [0, 32])
+                        for (const dz of [-22, 22])
+                            c.push(proj(X + dx, dy, dz));
+                for (const [a, b] of [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]])
+                    poly([c[a], c[b]]);
+            }
+            else {
+                const p = [];
+                for (let i = 0; i < 16; i++) {
+                    const a = i / 16 * Math.PI * 2;
+                    p.push(proj(X, 78 + Math.sin(a) * 17, Math.cos(a) * 22));
+                }
+                poly(p, true);
+            }
+            wm = 1;
+        }
+        function env(now) {
+            const hot = now - flash < .2, P = proj, X0 = -450, X1 = D + 350, sc = (state === 'play' ? now : now * .5) * speed, off = ((sc % 100) + 100) % 100;
+            wm = .5;
+            g.strokeStyle = '#2a2a2a';
+            for (const z of [-420, -260, 260, 420])
+                poly([P(X0, 0, z), P(X1, 0, z)]); // rejilla lateral
+            g.strokeStyle = '#666';
+            for (const z of [-100, 100])
+                poly([P(X0, 0, z), P(X1, 0, z)]); // bordes de pista
+            for (let x = X0 - off + 100; x < X1; x += 100)
+                poly([P(x, 0, -100), P(x, 0, 100)]); // travesaños que avanzan
+            g.strokeStyle = hot ? '#f55' : '#fff';
+            poly([P(X0, 0, 0), P(X1, 0, 0)]);
+            const r = [];
+            for (let i = 0; i < 20; i++) {
+                const a = i / 20 * Math.PI * 2;
+                r.push(P(Math.cos(a) * 30, 0, Math.sin(a) * 30));
+            }
+            g.strokeStyle = '#888';
+            poly(r, true); // marca: aquí se presiona                              // la línea de Vibri
+            wm = 1;
+        }
+        function draw(now) {
+            g.fillStyle = '#000';
+            g.fillRect(0, 0, W, H);
+            g.lineWidth = 3;
+            g.lineJoin = 'round';
+            g.lineCap = 'round';
+            g.strokeStyle = now - flash < .2 ? '#f55' : '#fff';
+            env(now);
+            if (state === 'play')
+                for (const o of obs)
+                    if (o.tm >= now)
+                        obstacle(o, now);
+            g.strokeStyle = now - flash < .2 ? '#f55' : '#fff';
+            vibri(now);
+            if (state === 'play')
+                for (const o of obs)
+                    if (o.tm < now)
+                        obstacle(o, now);
+            if (state === 'play') {
+                g.fillStyle = '#fff';
+                g.font = '600 16px system-ui';
+                g.textAlign = 'left';
+                g.fillText('Puntos ' + score + '   Combo ' + combo + '   Vidas ' + '♥'.repeat(Math.max(0, 3 - miss)), 16, 30);
+            }
+        }
+        function drawMsg(now) {
+            const a = 1 - (now - msgT) / .6;
+            if (a <= 0)
+                return;
+            g.globalAlpha = a;
+            g.textAlign = 'center';
+            g.font = '700 22px system-ui';
+            g.fillStyle = msg === 'PERFECT' ? '#7f7' : msg === 'BIEN' ? '#fff' : '#f55';
+            g.fillText(msg, px, gy - 130 * k);
+            g.globalAlpha = 1;
+        }
+        function frame() {
+            requestAnimationFrame(frame);
+            const now = state === 'play' ? ctx.currentTime : performance.now() / 1000;
+            tw = now;
+            pc = 0;
+            lvl *= .94;
+            wob = (1.2 + lvl * 3 + (now - flash < .3 ? 4 : 0)) * WOBBLE; // más temblor con los graves y al fallar
+            if (state === 'play') {
+                detect(now);
+                update(now);
+            }
+            if (state === 'play' || document.getElementById('menu').style.display !== 'none') {
+                draw(now);
+                drawMsg(now);
+            }
+        }
+        requestAnimationFrame(frame);
+        // ---------- Controles ----------
+        addEventListener('keydown', e => {
+            if (['ArrowUp', 'Space', 'KeyW'].includes(e.code)) {
+                e.preventDefault();
+                if (!e.repeat)
+                    press('up');
+            }
+            if (['ArrowDown', 'KeyS'].includes(e.code)) {
+                e.preventDefault();
+                if (!e.repeat)
+                    press('down');
+            }
+        });
+        cv.addEventListener('pointerdown', e => press(e.clientY < H / 2 ? 'up' : 'down'));
+        document.getElementById('demo').onclick = () => start();
+        document.getElementById('file').onchange = e => { if (e.target.files[0])
+            start(e.target.files[0]); };
+    </script>
+</body>
+</html>
