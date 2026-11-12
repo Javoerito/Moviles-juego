@@ -99,7 +99,7 @@
 
     <div id="menu" style="display:none">
         <h1 id="ttl">ViboLínea</h1>
-        <p id="msg">Los obstáculos nacen de la música. Cuando uno llegue al círculo de Vibri: bloque (graves) = ↑, aro (agudos) = ↓. Entre más justo, más puntos. Machacar las teclas te penaliza y te bloquea.</p>
+        <p id="msg">Los obstáculos nacen de la música. Cuando uno llegue al círculo de Vibri: bloque (graves) = ↑, aro (agudos) = ↓. Entre más justo, más puntos. Machacar las teclas sobrecalienta la RAM: la pantalla se pone roja y te bloquea.</p>
         <button id="demo">Jugar con demo</button>
         <label class="b">Cargar tu canción<input id="file" type="file" accept="audio/*"></label>
         <p>↑ / Espacio / W: arriba · ↓ / S: abajo<br>Móvil: toca la mitad de arriba = ↑, la de abajo = ↓</p>
@@ -323,7 +323,7 @@ const NEAR = 120;
             if (state !== 'play')
                 return;
             const now = ctx.currentTime;
-            if (now < lockUntil) { say('¡SPAM! BLOQUEADO', now); return; }
+            if (now < lockUntil) { say('¡RAM SOBRECALENTADA!', now); return; }
             heat = heatNow(now);
             heatT = now;
             const gap = now - lastPress;
@@ -334,7 +334,7 @@ const NEAR = 120;
                 heat = 0;
                 combo = 0;
                 flash = now;
-                say('¡SPAM! BLOQUEADO', now);
+                say('¡RAM SOBRECALENTADA!', now);
                 return true;
             };
             if (gap < MIN_GAP) { heat += 1; overheat(); return; }
@@ -573,6 +573,27 @@ const EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [
             L3(r, true); // marca: aquí se presiona
             wm = 1;
         }
+        // ---------- RAM sobrecalentada: el spam enrojece la pantalla ----------
+        // estrés 0..1 = max(calor actual, bloqueo en curso). En el bloqueo se mantiene al máximo y se enfría en el último 0.6 s.
+        function stressAt(now) {
+            if (!ctx || state !== 'play') return 0;
+            const left = lockUntil - now;
+            return Math.min(1, Math.max(heatNow(now) / HEAT_MAX, left > 0 ? Math.min(1, left / .6) : 0));
+        }
+        function overheatFx(now) {
+            const s = stressAt(now);
+            if (s < .02) return;
+            // durante el bloqueo, un parpadeo suave (≈2,5 por segundo: por debajo del límite de 3/s para fotosensibilidad)
+            const fl = (now < lockUntil && Math.floor(now * 5) % 2) ? .12 : 0, k2 = Math.min(1, s + fl), c = Math.round(255 * (1 - .9 * k2));
+            g.save();
+            g.globalCompositeOperation = 'multiply'; // las líneas blancas se vuelven rojas
+            g.fillStyle = 'rgb(255,' + c + ',' + c + ')';
+            g.fillRect(0, 0, W, H);
+            g.globalCompositeOperation = 'lighter'; // y el fondo negro se enciende de rojo
+            g.fillStyle = 'rgba(255,20,0,' + (.5 * k2 * k2).toFixed(3) + ')';
+            g.fillRect(0, 0, W, H);
+            g.restore();
+        }
         function draw(now) {
             g.fillStyle = '#000';
             g.fillRect(0, 0, W, H);
@@ -591,20 +612,31 @@ const EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [
                 for (const o of obs)
                     if (o.tm < now)
                         obstacle(o, now);
+            if (state === 'play')
+                overheatFx(now);
             if (state === 'play') {
                 g.fillStyle = '#fff';
                 g.font = '600 16px system-ui';
                 g.textAlign = 'left';
                 g.fillText('Puntos ' + score + '   Combo ' + combo + '   Vidas ' + '♥'.repeat(Math.max(0, 3 - miss)), 16, 30);
-                const hn = heatNow(now) / HEAT_MAX; // medidor de calor (spam)
-                if (hn > .05) {
-                    g.strokeStyle = '#f55'; g.lineWidth = 1; g.strokeRect(16, 42, 90, 8);
-                    g.fillStyle = '#f55'; g.fillRect(16, 42, 90 * Math.min(1, hn), 8);
-                    g.lineWidth = 3;
-                }
+                const st = stressAt(now), temp = Math.round(40 + st * 55); // temperatura ficticia de la RAM: 40 a 95 °C
+                const col = st < .5 ? '#ffffff' : st < .8 ? '#ffd84a' : '#ff5555';
+                g.lineWidth = 1;
+                g.strokeStyle = '#fff';
+                g.strokeRect(16, 42, 90, 8);
+                g.fillStyle = col;
+                g.fillRect(16, 42, 90 * st, 8);
+                g.lineWidth = 3;
+                g.font = '12px system-ui';
+                g.textAlign = 'left';
+                g.fillText('RAM ' + temp + '°C', 16, 66);
                 if (ctx && ctx.currentTime < lockUntil) {
-                    g.fillStyle = '#f55'; g.textAlign = 'center'; g.font = '700 24px system-ui';
-                    g.fillText('¡SPAM! BLOQUEADO', W / 2, 70);
+                    g.fillStyle = '#fff';
+                    g.textAlign = 'center';
+                    g.font = '700 24px system-ui';
+                    g.fillText('¡RAM SOBRECALENTADA!', W / 2, 70);
+                    g.font = '14px system-ui';
+                    g.fillText('enfriando… ' + Math.max(0, lockUntil - ctx.currentTime).toFixed(1) + ' s', W / 2, 94);
                 }
             }
         }
@@ -829,7 +861,7 @@ const EDGES = [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [
             const now = state === 'play' ? ctx.currentTime : performance.now() / 1000;
             const qn = Math.floor(now * FPS) / FPS, newF = qn !== lastQ;
             lvl *= .94;
-            wob = (1.2 + lvl * 3 + (now - flash < .3 ? 4 : 0)) * WOBBLE; // más temblor con los graves y al fallar
+            wob = (1.2 + lvl * 3 + (now - flash < .3 ? 4 : 0) + stressAt(now) * 4) * WOBBLE; // más temblor con los graves y al fallar
             if (state === 'loading') {
                 if (loadT0 < 0) loadT0 = now;
                 if (newF) { lastQ = qn; tw = qn; pc = 0; drawLoading(Math.max(0, qn - loadT0), qn); }
