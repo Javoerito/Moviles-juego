@@ -12,6 +12,7 @@ Proyecto académico, homenaje a *Vib-Ribbon*.
 ├── juego/
 │   └── index.html                ← El juego completo (Canvas 2D nativo, un solo archivo)
 ├── .github/workflows/itch.yml    ← CI/CD a itch.io (Misión Legendaria)
+├── itch/                         ← Kit para la página de itch.io (portada + textos para pegar)
 ├── .nojekyll                     ← Evita que GitHub Pages procese el sitio con Jekyll
 ├── LICENSE                       ← MIT
 └── README.md
@@ -22,7 +23,7 @@ Proyecto académico, homenaje a *Vib-Ribbon*.
 ## Antes de publicar: checklist (5 minutos)
 
 - [ ] En `index.html` (Muro de Honor) escribe los nombres reales del equipo.
-- [ ] En `index.html` (sección "¿LISTO?") cambia `TU_USUARIO` por tu usuario de itch.io y de GitHub.
+- [ ] Cuando exista la página de itch.io: en `index.html`, dentro del `<script>`, pega el enlace en `const ITCH_URL = '';`.
 - [ ] **Foto de la RAM de la intro** (`juego/index.html`, constante `RAM_SRC`): confirma de dónde salió. Si no es tuya o no tiene licencia que permita usarla, **reemplázala** por una foto propia o una con licencia CC0 / CC BY (y acredítala en el Muro de Honor).
 - [ ] En `.github/workflows/itch.yml` cambia `ITCH_USER` e `ITCH_GAME`.
 - [ ] Opcional: si no quieren ser tan literales con "homenaje a Vib-Ribbon", cambien el nombre del personaje (Vibri) antes de publicar en una plataforma pública.
@@ -34,12 +35,12 @@ git init
 git add .
 git commit -m "ViboLínea: landing + juego"
 git branch -M main
-git remote add origin https://github.com/TU_USUARIO/viblinea.git
+git remote add origin https://github.com/Javoerito/Moviles-juego.git
 git push -u origin main
 ```
 
 Luego en GitHub: **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)` → Save**.
-En 1 o 2 minutos queda en `https://TU_USUARIO.github.io/viblinea/` (el botón JUGAR lleva a `.../viblinea/juego/`).
+En 1 o 2 minutos queda en `https://javoerito.github.io/Moviles-juego/` (el botón JUGAR lleva a `.../Moviles-juego/juego/`).
 
 ## Misión 4: tu hogar indie (itch.io)
 
@@ -70,8 +71,9 @@ Cómo funciona: cada push a `main` que toque `juego/` descarga butler (la herram
 
 ```
 🎮 ViboLínea — Equipo [nombre]
-1) Landing (GitHub Pages): https://TU_USUARIO.github.io/viblinea/
-2) Plataforma indie: https://TU_USUARIO.itch.io/viblinea
+1) Landing (GitHub Pages): https://javoerito.github.io/Moviles-juego/
+   Juego directo:           https://javoerito.github.io/Moviles-juego/juego/
+2) Plataforma indie: https://TU_USUARIO.itch.io/viblinea   ← pega aquí el enlace real
 3) CI/CD (mención de honor): .github/workflows/itch.yml
    push a main → butler → itch.io en ~2 min
 ```

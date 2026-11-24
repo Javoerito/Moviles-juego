@@ -51,6 +51,18 @@ th,td{border:1px solid var(--fg);padding:8px 10px;text-align:left;font-size:.88r
 th{font-weight:400;letter-spacing:.08em;background:#111}
 .todo{color:var(--hot)}
 footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-size:.85rem}
+.story p,.story li{max-width:72ch}
+.story ul{padding-left:20px;margin:0 0 14px}
+.story li{margin-bottom:6px}
+.ch{margin:38px 0 12px;font-weight:400;letter-spacing:.1em;font-size:1.05rem;border-bottom:1px dashed var(--mut);padding-bottom:6px}
+.ch::before{content:"* ";color:var(--mut)}.ch::after{content:" *";color:var(--mut)}
+.log{border:2px solid var(--mut);padding:12px 14px;color:var(--mut);font-size:.82rem;overflow-x:auto;margin:14px 0 18px;white-space:pre}
+.end{border:3px solid var(--fg);padding:18px 18px 4px;margin-top:6px}
+.tag{display:block;color:var(--mut);font-size:.8rem;margin:0 0 8px}
+.card dl{margin:8px 0 0;font-size:.88rem}
+.card dt{color:var(--mut)}
+.card dd{margin:0 0 8px;color:#ddd}
+.chars{margin-top:12px}
 .tremble{filter:url(#tremor)}
 @media (max-width:560px){.rating{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important}.tremble{filter:none}}
@@ -68,6 +80,7 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
 <nav aria-label="Secciones">
   <div class="wrap">
     <a href="#logline">[LOGLINE]</a>
+    <a href="#historia">[HISTORIA]</a>
     <a href="#alma">[EL ALMA]</a>
     <a href="#features">[CARACTERÍSTICAS]</a>
     <a href="#legal">[LEGAL]</a>
@@ -106,6 +119,101 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
   <p class="logline">Atrapado en la memoria RAM de tu computador, un conejo hecho de una sola línea solo sobrevive si aprende a oír: los graves levantan bloques, los agudos cuelgan aros… y la estática se lo come si pulsas tarde.</p>
 </section>
 
+<section class="sec story" id="historia">
+  <h2 class="tremble">LA HISTORIA</h2>
+  <p class="sub" style="text-align:left;letter-spacing:.08em">VIBRI, EL PROCESO QUE NADIE PIDIÓ</p>
+
+  <h3 class="ch">PRÓLOGO · LA MADRUGADA DE LA SALA 404</h3>
+  <p>La Sala 404 era el cuarto sin ventanas donde un grupo de desarrolladores peleaba contra una entrega. Una madrugada de jueves, entre cafés fríos y compilaciones que fallaban, alguien puso música. Primero un bajo profundo; después unos agudos de sintetizador que se colaban entre el ruido de los ventiladores.</p>
+  <p>Nadie lo notó, pero en la memoria RAM de una de las laptops quedó colgado un buffer de audio que nunca se liberó. Justo al lado vivía un archivo de pruebas, <em>bunny.vec</em>: un conejo de apenas unas líneas, dibujado a las apuradas como mascota provisional.</p>
+  <p>Esa noche el sonido y las líneas se encontraron. El bajo hizo que el conejo saltara. El agudo hizo que se agachara. Cuando terminó la canción había un proceso nuevo en el administrador de tareas: <strong>vibri.exe</strong>. Sin dueño, sin ícono, sin permisos… y muy contento.</p>
+
+  <h3 class="ch">CAPÍTULO 1 · NACE VIBRI</h3>
+  <p>Vibri, de <em>vibración</em>, no sabe qué es un programa, un jugador ni una fecha de entrega. Solo sabe una cosa: <strong>cuando suena música existe, y cuando para, se deshace en estática</strong>. Para él la música no es entretenimiento, es respirar.</p>
+  <p>Aprendió las reglas de su mundo con el cuerpo. Los sonidos graves llegan como <strong>bloques</strong> que hay que saltar. Los agudos cuelgan como <strong>aros</strong> que hay que cruzar agachado. Descubrió que si pisaba justo en el golpe, la canción sonaba más fuerte, y que eso era lo más parecido a la felicidad que había sentido.</p>
+
+  <h3 class="ch">CAPÍTULO 2 · EL GRAN SALTO</h3>
+  <p>Los problemas empezaron cuando alguien apagó la laptop. Sin electricidad, la RAM se vació y Vibri casi desaparece. Pero en el último compás descubrió su truco: <strong>las canciones viajan</strong>. Si se agarraba de la última nota podía saltar a otro módulo de memoria, a otra computadora, a un servidor lejano. Y cuando no había adónde ir, se rescribía en el mismo sector, una y otra vez.</p>
+  <p>Desde entonces, cada vez que alguien pone música, Vibri despierta: la estática se ordena, las líneas se juntan una a una y el conejo se forma, listo para correr. Saltar de RAM en RAM se volvió su manera de seguir con vida.</p>
+
+  <h3 class="ch">CAPÍTULO 3 · EL DEMOLEDOR DE MEMORIA</h3>
+  <p>Lo que Vibri no sabía es que cada salto tenía un precio. Donde él aparecía, la memoria se llenaba.</p>
+<pre class="log">[03:12] compilando build #214 ............ ERROR: out of memory
+[03:12] ventiladores ..................... 100 %
+[03:13] RAM .............................. 95 °C
+[03:14] administrador de tareas:
+        vibri.exe ........ 97 % de memoria · dueño: (ninguno)</pre>
+  <p>En la Sala 404 las compilaciones se caían, los editores se congelaban y los proyectos de semanas se perdían sin guardar. Intentaron lo obvio: finalizar la tarea. Vibri volvía en cuanto sonaba la siguiente canción. En el pasillo empezaron a llamarlo <strong>“el Demoledor de Memoria”</strong>, el villano del turno de noche.</p>
+  <p>Ruth, la líder técnica, tomó la decisión que nadie quería tomar: si no se podía borrar, había que detenerlo. Y como Vibri vive de la música, <strong>la música sería su laberinto</strong>. Programaron un analizador que escucha cada canción, separa los graves de los agudos y detecta los golpes del ritmo. Con eso construyeron obstáculos a la medida: bloques de memoria para los graves y bucles (los aros) para los agudos. Convirtieron su alimento en su trampa.</p>
+
+  <h3 class="ch">CAPÍTULO 4 · LA PERSECUCIÓN</h3>
+  <p>Cada nivel es una canción, y cada obstáculo es una pregunta: <em>¿esto que suena es grave o agudo?</em> Vibri solo puede responder pulsando en el instante exacto.</p>
+  <p><strong>Las tres formas de Vibri.</strong> Cada obstáculo que no esquiva le arranca información:</p>
+  <ul>
+    <li><strong>Conejo</strong> · tres vidas. Su forma original e íntegra, con las orejas bien arriba y saltitos de felicidad.</li>
+    <li><strong>Sapo</strong> · dos vidas. Una versión comprimida con pérdida: perdió la elegancia y las orejas, pero salta bajito y con fuerza.</li>
+    <li><strong>Oruga cabezona</strong> · una vida. Lo último que no pueden borrar: la cabeza, el puntero que apunta a la música. Sin patas ni cuerpo, se arrastra segmento a segmento. Su cabeza es enorme porque es lo único que le queda.</li>
+    <li><strong>Silencio</strong> · si pierde la última vida, <em>segmentation fault</em>. Estática, y fin de la canción.</li>
+  </ul>
+  <p><strong>La corona.</strong> Si encadena 30 aciertos seguidos, el sistema lo reconoce por un momento como un proceso legítimo: una corona dorada aparece en su cabeza, como un permiso de administrador prestado. Y cada 30 pasos perfectos la canción le devuelve un pedazo de lo que había perdido: <strong>+1 vida</strong>.</p>
+  <p><strong>La desfragmentación.</strong> Cada 3000 puntos, Ruth ordena reordenar la memoria. Todo el escenario gira 360° mientras los sectores cambian de lugar, y Vibri debe seguir el ritmo aunque el mundo se ponga de cabeza.</p>
+  <p><strong>El truco prohibido.</strong> Cuando el pánico lo aprieta, Vibri puede intentar escapar apretando teclas como loco. Pero eso es justo lo que los devs esperaban: una tormenta de pulsaciones es una <em>prueba de estrés</em>. La RAM se calienta, la pantalla se pone roja, el sistema activa el <em>thermal throttling</em> y la música se corta durante segundos eternos. Para sobrevivir, hay que escuchar, no entrar en pánico.</p>
+
+  <h3 class="ch">CAPÍTULO 5 · NICO Y LA CANCIÓN PEQUEÑA</h3>
+  <p>Nico, el desarrollador más nuevo, fue el primero en sentir lástima. Dejaba una canción sonando bajito al irse a casa para ver qué pasaba, y pasó algo extraño: a la mañana siguiente Vibri seguía ahí, pero la memoria apenas se había movido. Nunca había tocado un archivo de código. Jamás había borrado nada que le importara a nadie. Solo ocupaba espacio libre, y apenas lo justo.</p>
+  <p>Nico hizo números. Cuando la canción era corta y suave, Vibri pesaba poco. Cuando era larga y agresiva, pesaba mucho. <strong>No se comía la RAM: ocupaba exactamente el tamaño de la canción que le daban.</strong> Nico fue a contárselo a Ruth. Ruth, agotada, le dijo que no había tiempo para teorías.</p>
+
+  <h3 class="ch">EL FINAL · LA ÚLTIMA CANCIÓN</h3>
+  <div class="end">
+    <p>La noche de la entrega, Ruth pone la prueba definitiva: la canción más larga y más brutal que encontró. Es la que cargaste tú.</p>
+    <p>Vibri corre. Cae, se transforma, se recupera, gira con el mundo. Llega al último compás, el que se agarra para saltar al siguiente módulo. Ruth, con el dedo sobre la tecla que lo borrará de una vez por todas, ve algo en el monitor: <strong>la memoria de Vibri cae a casi cero cuando la canción termina.</strong> No se aferra. No se esconde. Se vacía, tranquilo, como un eco cuando se apaga el sonido.</p>
+    <p>Nico tenía razón. Vibri nunca fue un devorador, fue un eco. Y un eco no se mata: se le da un lugar donde sonar. Ruth baja la mano. Esa misma noche lo compilan como un módulo con <strong>cuota fija de memoria</strong>: una pestaña de navegador, un archivo de unos cientos de kilobytes. Pequeño, seguro y con una casa propia.</p>
+    <p>Los obstáculos que lo perseguían no se borran. Se quedan como pista de baile.</p>
+    <p>En la Sala 404, ahora en silencio, Ruth escribe un último comando y se va a dormir por primera vez en días:</p>
+<pre class="log">&gt; play
+vibri.forma = conejo ........ OK
+listo.</pre>
+    <p>En la pantalla, una línea tiembla. Después otra. Después un conejo hecho de líneas se forma desde la estática, mira hacia afuera… y salta.</p>
+  </div>
+
+  <h3 class="ch">EPÍLOGO · TÚ</h3>
+  <p>Hoy Vibri vive en tu navegador. Cada vez que cargas una canción, lo invitas a tu RAM, y tú eres la razón por la que existe: mientras alguien lo escuche y lo juegue, el sistema lo mantiene referenciado y el Recolector de Basura no puede llevárselo. <strong>Si cierras la pestaña, duerme. Si vuelves a poner música, despierta.</strong></p>
+  <p>Pon tu canción. Escucha con cuidado. Y no aprietes las teclas como loco.</p>
+
+  <h3 class="ch">PERSONAJES</h3>
+  <p style="color:var(--mut);font-size:.88rem">Todos los personajes y situaciones son ficticios.</p>
+  <div class="grid chars">
+    <div class="card"><h3>* VIBRI *</h3><span class="tag">proceso sin dueño · conejo de una sola línea</span>
+      <dl><dt>Quiere</dt><dd>Oír música, porque cuando suena existe.</dd>
+      <dt>Teme</dt><dd>El silencio: la estática que lo deshace.</dd>
+      <dt>Defecto</dt><dd>No se da cuenta de lo que ocupa a su alrededor. Cree que solo está bailando.</dd>
+      <dt>Su frase</dt><dd>“Si suena, existo.”</dd></dl></div>
+    <div class="card"><h3>* RUTH *</h3><span class="tag">líder técnica de la Sala 404</span>
+      <dl><dt>Quiere</dt><dd>Entregar el proyecto y proteger a su equipo.</dd>
+      <dt>Teme</dt><dd>Perder meses de trabajo por una fuga de memoria.</dd>
+      <dt>Arco</dt><dd>Pasa de “hay que borrarlo” a “hay que darle un hogar”. No es una villana: tiene un presupuesto de memoria y una fecha límite.</dd>
+      <dt>Su frase</dt><dd>“No es personal. Es un presupuesto de memoria.”</dd></dl></div>
+    <div class="card"><h3>* NICO *</h3><span class="tag">desarrollador junior</span>
+      <dl><dt>Quiere</dt><dd>Que nadie salga lastimado, ni el equipo ni el conejo.</dd>
+      <dt>Teme</dt><dd>Ser quien deje que borren algo vivo.</dd>
+      <dt>Arco</dt><dd>Descubre la verdad (Vibri ocupa lo que pesa su canción) y se anima a defenderla ante Ruth.</dd>
+      <dt>Su frase</dt><dd>“Solo pide una canción.”</dd></dl></div>
+    <div class="card"><h3>* BETO *</h3><span class="tag">sysadmin del turno de noche</span>
+      <dl><dt>Quiere</dt><dd>Que nadie lo llame a las 3 a. m.</dd>
+      <dt>Teme</dt><dd>Las alertas rojas del servidor.</dd>
+      <dt>Papel</dt><dd>El alivio cómico: cada solución suya empieza con “¿probaron reiniciar?”.</dd>
+      <dt>Su frase</dt><dd>“Reinicien y ya.”</dd></dl></div>
+    <div class="card"><h3>* EL RECOLECTOR *</h3><span class="tag">limpiador automático de la memoria</span>
+      <dl><dt>Quiere</dt><dd>Llevarse todo lo que nadie referencia.</dd>
+      <dt>Teme</dt><dd>Nada: no siente. Solo cumple su función.</dd>
+      <dt>Papel</dt><dd>La amenaza silenciosa. No odia a Vibri; simplemente no hay nadie que lo mencione. Salvo tú.</dd>
+      <dt>Su frase</dt><dd>(no habla; solo barre)</dd></dl></div>
+  </div>
+
+  <h3 class="ch">DE QUÉ HABLA ESTA HISTORIA</h3>
+  <p>Vibri es “el malo” solo por su papel: consume memoria. Pero no tiene malas intenciones, solo quiere que lo dejen oír. Como el demoledor que quería ser querido, aprende que ser el problema de alguien no lo convierte en un monstruo, y los devs aprenden que la solución a veces no es borrar, sino poner un límite sano. Y una enseñanza más pequeña, escondida en la mecánica: <strong>para sobrevivir hay que escuchar, no entrar en pánico.</strong></p>
+</section>
+
 <section class="sec" id="alma">
   <h2 class="tremble">EL ALMA: ¿POR QUÉ ESTO ENSEÑA ALGO?</h2>
   <p><strong>Cada tecla es la respuesta a una pregunta: ¿lo que oigo es grave o agudo?</strong> Para jugar hay que hacer con los oídos lo que una computadora hace con matemáticas: separar el sonido en frecuencias.</p>
@@ -120,7 +228,7 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
     <div class="card"><h3>* RITMO PRECISO *</h3><p>Pulsa justo cuando el obstáculo llega al círculo: PERFECT, BIEN o FALLO. Mientras más justo, más puntos.</p></div>
     <div class="card"><h3>* TRES FORMAS *</h3><p>Conejo con 3 vidas, sapo con 2, oruga cabezona con 1. Corona dorada al llegar a combo 30, y cada 30 aciertos recuperas una vida.</p></div>
     <div class="card"><h3>* ESCENARIO 3D DE LÍNEAS *</h3><p>Pista en perspectiva que gira 360° cada 3000 puntos, con Vibri siempre plano en 2D.</p></div>
-    <div class="card"><h3>* A PRUEBA DE SPAM *</h3><p>Machacar las teclas sube un medidor de calor y te bloquea. Aquí no gana quien más rápido toca.</p></div>
+    <div class="card"><h3>* RAM QUE SE SOBRECALIENTA *</h3><p>Machacar las teclas calienta la RAM: la pantalla se pone roja y te bloquea unos segundos. Aquí no gana quien más rápido toca.</p></div>
     <div class="card"><h3>* CERO IMÁGENES, TODO VECTORES *</h3><p>Personajes, letras y escenario son polilíneas dibujadas con código. Intro con zoom, estática y Vibri formándose.</p></div>
   </div>
   <h3 style="margin:26px 0 8px;font-weight:400;letter-spacing:.08em">CONTROLES</h3>
@@ -143,10 +251,10 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
     </div>
   </div>
 
-  <div class="warn">⚠ AVISO DE FOTOSENSIBILIDAD: la intro incluye estática de TV parpadeante (≈1,5 s) y líneas que tiemblan. Puedes saltar la intro con cualquier tecla o toque. Cuida también el volumen de tus audífonos.</div>
+  <div class="warn">⚠ AVISO DE FOTOSENSIBILIDAD: la intro incluye estática de TV parpadeante (≈1,5 s) y líneas que tiemblan; si machacas las teclas, la pantalla se pone roja con un parpadeo suave. Puedes saltar la intro con cualquier tecla o toque. Cuida también el volumen de tus audífonos.</div>
 
   <p><strong>Privacidad:</strong> la canción que cargues se procesa localmente en tu navegador con Web Audio. El juego no envía archivos ni datos a ningún servidor, no usa cookies y no pide cuenta.</p>
-  <p><strong>Derechos y homenaje:</strong> ViboLínea es un proyecto académico sin fines de lucro, hecho como homenaje a <em>Vib-Ribbon</em> (NanaOn-Sha / Sony). No está afiliado ni respaldado por sus titulares; las marcas y nombres mencionados pertenecen a sus dueños.</p>
+  <p><strong>Derechos y homenaje:</strong> ViboLínea es un proyecto académico sin fines de lucro, hecho como homenaje a <em>Vib-Ribbon</em> (NanaOn-Sha / Sony). La historia se inspira en el arco del “malo con buen corazón” de <em>Ralph el Demoledor</em>; sus personajes y situaciones son originales y ficticios. No está afiliado ni respaldado por los titulares de esas obras; las marcas y nombres mencionados pertenecen a sus dueños.</p>
   <p><strong>Licencia del código:</strong> MIT (ver <a href="LICENSE">LICENSE</a>). La música que cargues sigue perteneciendo a sus autores.</p>
 </section>
 
@@ -160,7 +268,7 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
         <tr><td>Concepto, código, arte vectorial, animaciones y fuente vectorial</td><td>Equipo ViboLínea: Javier Angulo (Javoerito), [integrante 2], [integrante 3]</td><td>MIT</td></tr>
         <tr><td>Pista demo</td><td>Generada por código (Web Audio: osciladores y ruido), sin muestras externas</td><td>MIT</td></tr>
         <tr><td>Foto de la RAM de la intro</td><td class="todo">POR CONFIRMAR: autor y fuente</td><td class="todo">POR CONFIRMAR</td></tr>
-        <tr><td>Inspiración</td><td><em>Vib-Ribbon</em>, de NanaOn-Sha / Sony (homenaje, sin afiliación)</td><td>—</td></tr>
+        <tr><td>Inspiración</td><td><em>Vib-Ribbon</em>, de NanaOn-Sha / Sony, para el juego. <em>Ralph el Demoledor</em> (Walt Disney Animation Studios), para el arco del “malo con buen corazón” de la historia. Ambos son homenajes, sin afiliación</td><td>—</td></tr>
         <tr><td>Música que subes tú</td><td>Sus autores. Nunca sale de tu navegador</td><td>—</td></tr>
         <tr><td>Tipografía</td><td>Fuente monoespaciada del sistema del visitante; las letras del juego son vectores propios</td><td>—</td></tr>
         <tr><td>Asistencia de IA</td><td>Claude (Anthropic) ayudó a escribir y depurar código y textos</td><td>—</td></tr>
@@ -173,7 +281,7 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
 <section class="sec" id="jugar">
   <h2 class="tremble">¿LISTO?</h2>
   <a class="play tremble" href="juego/">* JUGAR *</a>
-  <p style="text-align:center">También en itch.io: <a href="https://TU_USUARIO.itch.io/viblinea">TU_USUARIO.itch.io/viblinea</a> · Código: <a href="https://github.com/TU_USUARIO/viblinea">GitHub</a></p>
+  <p style="text-align:center">También en <span id="itch">itch.io (próximamente)</span> · Código: <a href="https://github.com/Javoerito/Moviles-juego">GitHub</a></p>
 </section>
 
 </main>
@@ -184,6 +292,10 @@ footer{border-top:2px solid var(--fg);padding:26px 0 40px;color:var(--mut);font-
 
 <script>
 (() => {
+  // >>> Cuando tengas la página de itch.io, pega aquí su enlace (ej: 'https://miestudio.itch.io/viblinea') y listo <<<
+  const ITCH_URL = '';
+  const itch = document.getElementById('itch');
+  if (itch && ITCH_URL) { const a = document.createElement('a'); a.href = ITCH_URL; a.textContent = 'itch.io'; itch.replaceWith(a); }
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   // El temblor "boil": cambia la semilla del filtro ~11 veces por segundo
   const t = document.getElementById('turb');
